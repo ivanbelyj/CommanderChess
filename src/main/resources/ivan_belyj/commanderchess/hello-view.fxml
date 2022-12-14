@@ -1,10 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.canvas.Canvas?>
-<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.text.TextFlow?>
 
-<Pane xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ivan_belyj.commanderchess.ChessController">
+<HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="770.0" prefWidth="968.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ivan_belyj.commanderchess.ChessController">
    <children>
-      <Canvas fx:id="canvas" height="800.0" width="800.0" />
+      <Canvas fx:id="canvas" height="800.0" width="700.0" />
+      <VBox alignment="TOP_CENTER" prefHeight="800.0" prefWidth="176.0" style="-fx-background-color: #aaa;" HBox.hgrow="ALWAYS">
+         <HBox.margin>
+            <Insets />
+         </HBox.margin>
+         <children>
+            <Label text="Игрок 1">
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
+            </Label>
+            <TextField fx:id="player1Name" prefWidth="189.0">
+               <VBox.margin>
+                  <Insets top="4.0" />
+               </VBox.margin>
+            </TextField>
+            <ColorPicker fx:id="player1Color">
+               <VBox.margin>
+                  <Insets top="4.0" />
+               </VBox.margin>
+               <value>
+                  <Color red="0.8274509906768799" />
+               </value>
+            </ColorPicker>
+            <Label text="Игрок 2">
+               <VBox.margin>
+                  <Insets top="14.0" />
+               </VBox.margin>
+            </Label>
+            <TextField fx:id="player2Name">
+               <VBox.margin>
+                  <Insets top="4.0" />
+               </VBox.margin>
+            </TextField>
+            <ColorPicker fx:id="player2Color">
+               <VBox.margin>
+                  <Insets top="4.0" />
+               </VBox.margin>
+               <value>
+                  <Color green="0.31238093972206116" blue="0.8199999928474426" />
+               </value>
+            </ColorPicker>
+            <Button fx:id="newGameButton" mnemonicParsing="false" onAction="#newGamePressed" text="Новая игра">
+               <VBox.margin>
+                  <Insets top="14.0" />
+               </VBox.margin>
+            </Button>
+            <Separator prefWidth="200.0">
+               <VBox.margin>
+                  <Insets bottom="32.0" top="32.0" />
+               </VBox.margin>
+            </Separator>
+            <TextFlow fx:id="textFlow" prefHeight="200.0" prefWidth="200.0" />
+         </children>
+         <padding>
+            <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+         </padding>
+      </VBox>
    </children>
-</Pane>
+</HBox>
