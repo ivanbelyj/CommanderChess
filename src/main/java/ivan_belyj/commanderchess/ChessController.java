@@ -1,5 +1,7 @@
 package ivan_belyj.commanderchess;
 
+import ivan_belyj.commanderchess.model.FieldData;
+import ivan_belyj.commanderchess.model.FieldFigure;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
@@ -14,76 +16,98 @@ public class ChessController implements Initializable {
     @FXML
     private Canvas canvas;
 
+    /** Ссылка на данные об игровом поле для отображения **/
+    private FieldData fieldData;
+
+    // Поле можно разделять на клетки (10 x 11) или узлы (11 x 12))
+    private static final int fieldCellsX = FieldData.FIELD_CELLS_X;
+    private static final int fieldCellsY = FieldData.FIELD_CELLS_Y;
+
+    private static final double padding = 30;  // Поле отображается с отступом от краев окна
+
+    /** Размер клетки, включая толщину линии / линий **/
+    private double cellSize;
+
+    private static final Paint linePaint = Color.DARKGRAY;
+    private static final Paint waterPaint = Color.SKYBLUE;
+    private static final Paint shallowWaterPaint = Color.ALICEBLUE;
+    private static final Paint backgroundPaint = Color.WHITE;
+
+    // Следующие поля используются / устанавливаются во время отрисовки
+    private GraphicsContext ctx;
+
+    // Рисование линий начинается с учетом отступа
+    private final double initialYPx = padding;
+    private final double initialXPx = padding;
+
+    // Координаты последнего узла сетки
+    private double lastNodeX;
+    private double lastNodeY;
+
     @Override
     @FXML
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        defineCellSize();
         draw();
+    }
 
+    private void defineCellSize() {
+        // Размер клетки определяется таким образом, чтобы клетки уместились в окно
+        // (а значит, в минимальную из сторон окна)
+        double minCanvasSize;
+        double minSideCells;
+
+        if (canvas.getWidth() < canvas.getHeight()) {
+            minCanvasSize = canvas.getWidth();
+            minSideCells = fieldCellsX;
+        } else {
+            minCanvasSize = canvas.getHeight();
+            minSideCells = fieldCellsY;
+        }
+        cellSize = (minCanvasSize - padding * 2) / minSideCells;
     }
 
     private void draw() {
-        // Поле можно разделять на клетки (10 x 11) или узлы (11 x 12))
-        int fieldCellsX = 10;  // Todo: get from field model
-        int fieldCellsY = 11;
+        this.ctx = canvas.getGraphicsContext2D();
+        this.lastNodeX = (cellSize) * fieldCellsX + padding;
+        this.lastNodeY = (cellSize) * fieldCellsY + padding;
 
-        double padding = 30;  // Поле отображается с отступом от краев окна
+        fillBackground();
+        drawCells();
+        drawLines();
+        drawBorder();
+        // drawFigures();
+    }
 
-        double maxX = canvas.getWidth();
-        double maxY = canvas.getHeight();
+    private void fillBackground() {
+        ctx.setFill(backgroundPaint);
+        ctx.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+    }
 
-        GraphicsContext ctx = canvas.getGraphicsContext2D();
-
-        // Размер клетки, включая толщину линии / линий
-        double cellSize;
-        // Размер клетки определяется таким образом, чтобы клетки уместились в окно
-        // (а значит, в минимальную из сторон окна)
-        double min;
-        double minCells;
-        if (maxX < maxY) {
-            min = maxX;
-            minCells = fieldCellsX;
-        } else {
-            min = maxY;
-            minCells = fieldCellsY;
-        }
-        cellSize = (min - padding * 2) / minCells;
-
-        Paint linePaint = Color.DARKGRAY;
-        Paint waterPaint = Color.SKYBLUE;
-        Paint shallowPaint = Color.ALICEBLUE;
-
-        ctx.setFill(Color.WHITE);
-        ctx.fillRect(0, 0, maxX, maxY);
-
-        ctx.setStroke(linePaint);
-
-        // Рисование линий начинается с учетом отступа
-        final double initialYPx = padding;
-        final double initialXPx = padding;
-
+    private void drawCells() {
         double xPx = initialXPx;
         double yPx = initialYPx;
-
-        final double lastNodeX = (cellSize) * fieldCellsX + padding;
-        final double lastNodeY = (cellSize) * fieldCellsY + padding;
 
         // В начале отрисовывается вода, а только после -- линии и фигуры
         ctx.setFill(waterPaint);
         // Покраска клетки
         // Todo: покраска поля на основе field model
+
         for (int x = 0; x < fieldCellsX + 1; x++, xPx += cellSize) {
             for (int y = 0; y < fieldCellsY + 1; y++, yPx += cellSize) {
                 // test
                 if (x == 0 && y == 0
-                    || x == 2 && y ==3)
+                        || x == 2 && y ==3)
                     ctx.fillRect(xPx, yPx, cellSize, cellSize);
             }
             yPx = initialYPx;
         }
+    }
 
+    private void drawLines() {
         // Отображение линий
-        xPx = initialXPx;
-        yPx = initialYPx;
+        double xPx = initialXPx;
+        double yPx = initialYPx;
 
         ctx.setStroke(linePaint);
 
@@ -109,7 +133,9 @@ public class ChessController implements Initializable {
             xPx += cellSize;
             yPx = initialYPx;
         }
+    }
 
+    private void drawBorder() {
         // Границы поля выделяются красным
         ctx.setStroke(Color.MEDIUMVIOLETRED);
         ctx.strokeLine(initialXPx, initialYPx, initialXPx, lastNodeY);
@@ -118,5 +144,10 @@ public class ChessController implements Initializable {
         ctx.strokeLine(initialXPx, lastNodeY, lastNodeX, lastNodeY);
     }
 
+    private void drawFigures() {
+        // Отображение фигур
+        for (FieldFigure fig : fieldData.getFiguresData()) {
 
+        }
+    }
 }
