@@ -56,7 +56,7 @@
                   <Color green="0.31238093972206116" blue="0.8199999928474426" />
                </value>
             </ColorPicker>
-            <Button fx:id="newGameButton" mnemonicParsing="false" onAction="#newGamePressed" text="Новая игра">
+            <Button fx:id="gameButton" mnemonicParsing="false" onAction="#gameButtonPressed" text="Новая игра">
                <VBox.margin>
                   <Insets top="14.0" />
                </VBox.margin>
