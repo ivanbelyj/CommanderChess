@@ -55,10 +55,14 @@ public class ChessController implements Initializable {
 
         fieldDrawingData = new FieldDrawingData(canvas);
 
-        drawer = new Drawer(fieldDrawingData, canvas);
+        drawer = new Drawer(fieldDrawingData, canvas.getGraphicsContext2D());
         drawer.draw();
         mouseHandler = new MouseHandler(fieldDrawingData, canvas);
         mouseHandler.addFieldNodeSelectedEventListener(args -> {
+            // После того, как игра окончена, фигуры нельзя выделять мышью
+            if (currentGame == null)
+                return;
+            
             UIDrawingData drawingData = new UIDrawingData(args.getPosX(), args.getPosY());
             drawer.draw(drawingData);
         });

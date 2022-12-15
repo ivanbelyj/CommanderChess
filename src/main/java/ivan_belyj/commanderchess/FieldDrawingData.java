@@ -15,11 +15,16 @@ public class FieldDrawingData {
     /** Размер клетки, включая толщину линии / линий **/
     private double _cellSize;
 
+    private final double _canvasWidth;
+    private final double _canvasHeight;
+
     // Поле можно разделять на клетки (10 x 11) или узлы (11 x 12))
 //    private static final int fieldCellsX = FieldData.FIELD_NODES_X - 1;
 //    private static final int fieldCellsY = FieldData.FIELD_NODES_Y - 1;
 
     public FieldDrawingData(Canvas canvas) {
+        _canvasWidth = canvas.getWidth();
+        _canvasHeight = canvas.getHeight();
         defineCellSize(canvas);
     }
 
@@ -44,5 +49,13 @@ public class FieldDrawingData {
 
     public double getCellSize() {
         return _cellSize;
+    }
+
+    public double getCanvasWidth() {
+        return _canvasWidth;
+    }
+
+    public double getCanvasHeight() {
+        return _canvasHeight;
     }
 }

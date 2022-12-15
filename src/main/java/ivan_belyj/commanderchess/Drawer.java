@@ -17,8 +17,6 @@ public class Drawer {
 
     private PartyGame currentGame;
 
-    private final Canvas canvas;
-
     /** Размер фигуры **/
     private final double figureSize;
 
@@ -44,9 +42,9 @@ public class Drawer {
     private double lastNodeX;
     private double lastNodeY;
 
-    public Drawer(FieldDrawingData fieldDrawing, Canvas canvas) {
+    public Drawer(FieldDrawingData fieldDrawing, GraphicsContext ctx) {
         this.fieldDrawing = fieldDrawing;
-        this.canvas = canvas;
+        this.ctx = ctx;
 
         figureSize = fieldDrawing.getCellSize() * 0.8;
     }
@@ -64,7 +62,6 @@ public class Drawer {
     }
 
     public void draw() {
-        this.ctx = canvas.getGraphicsContext2D();
         this.lastNodeX = (fieldDrawing.getCellSize()) * FieldData.FIELD_CELLS_X + FieldDrawingData.PADDING_X;
         this.lastNodeY = (fieldDrawing.getCellSize()) * FieldData.FIELD_CELLS_Y + FieldDrawingData.PADDING_Y;
 
@@ -83,22 +80,24 @@ public class Drawer {
 
     private void drawBackground() {
         ctx.setFill(backgroundPaint);
-        ctx.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        ctx.fillRect(0, 0, fieldDrawing.getCanvasWidth(), fieldDrawing.getCanvasHeight());
     }
 
     private void drawUI() {
-        // Таким образом в исходных данных было обозначено отсутствие выбранной клетки
-        if (uiDrawing.getSelectedPosX() < 0 || uiDrawing.getSelectedPosY() < 0
-                || uiDrawing.getSelectedPosX() >= FieldData.FIELD_NODES_X
-                || uiDrawing.getSelectedPosY() >= FieldData.FIELD_NODES_Y) {
+        int x = uiDrawing.getSelectedPosX();
+        int y = uiDrawing.getSelectedPosY();
+        // Если была выбрана точка за пределами сетки узлов
+        if (x < 0 || y < 0 || x >= FieldData.FIELD_NODES_X || y >= FieldData.FIELD_NODES_Y
+                || currentGame == null || currentGame.getFieldData().isEmpty(x, y)) {
+            uiDrawing = null;
             return;
         }
 
         ctx.setFill(selectionPaint);
-        double x = getCoordInCanvasByPosInField(uiDrawing.getSelectedPosX(), false);
-        double y = getCoordInCanvasByPosInField(uiDrawing.getSelectedPosY(), true);
+        double xPx = getCoordInCanvasByPosInField(uiDrawing.getSelectedPosX(), false);
+        double yPx = getCoordInCanvasByPosInField(uiDrawing.getSelectedPosY(), true);
         double size = figureSize * 1.5;
-        ctx.fillOval(x - size / 2, y - size / 2, size, size);
+        ctx.fillOval(xPx - size / 2, yPx - size / 2, size, size);
     }
 
     private void drawCells() {

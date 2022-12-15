@@ -2,7 +2,7 @@ package ivan_belyj.commanderchess.model;
 
 import java.util.List;
 
-/** Данные о расстановки фигур на поле **/
+/** Данные о расстановке фигур на поле **/
 public class FieldData {
     public static final int FIELD_NODES_X = 11;
     public static final int FIELD_NODES_Y = 12;
@@ -41,5 +41,15 @@ public class FieldData {
             return FieldCellType.Water;
 
         return FieldCellType.Unknown;
+    }
+
+    /** Свободен ли узел с данными координатами **/
+    public boolean isEmpty(int x, int y) {
+        for (FieldFigure fig : _figures) {
+            if (fig.getPosX() == x && fig.getPosY() == y) {
+                return false;
+            }
+        }
+        return true;
     }
 }
