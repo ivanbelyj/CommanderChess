@@ -247,7 +247,7 @@ public class ChessController implements Initializable {
         ctx.strokeOval(x, y, figureSize, figureSize);
         ctx.setFill(figure.getPlayer().getColor());
         ctx.fillOval(x, y, figureSize, figureSize);
-        
+
         String str = "";
         switch (figure.getFigureType()) {
             case Commander -> str = "C";
@@ -263,7 +263,6 @@ public class ChessController implements Initializable {
             case Headquarters -> str = "H";
         }
 
-        // Todo: Цвет, который хорошо читается на цвете фигуры игрока
         ctx.setFill(Color.WHITE);
         ctx.setFont(figureTextFont);
         ctx.setTextAlign(TextAlignment.CENTER);
