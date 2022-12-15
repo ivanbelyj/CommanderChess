@@ -9,11 +9,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.TextField;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
-import javafx.scene.text.Font;
-import javafx.scene.text.TextAlignment;
-import javafx.scene.text.TextFlow;
+import javafx.scene.paint.*;
+import javafx.scene.text.*;
 
 import java.net.URL;
 import java.util.Random;
@@ -58,8 +55,14 @@ public class ChessController implements Initializable {
 
     private static final Paint linePaint = Color.DARKGRAY;
     private static final Paint waterPaint = Color.SKYBLUE;
-    private static final Paint shallowWaterPaint = Color.ALICEBLUE;
     private static final Paint backgroundPaint = Color.WHITE;
+
+    // Используется для градиента далее
+    private static final Stop[] leftStops = new Stop[] { new Stop(0, Color.SKYBLUE), new Stop(0.8, Color.WHITE) };
+    private static final Stop[] rightStops = new Stop[] { new Stop(0.2, Color.WHITE), new Stop(1, Color.SKYBLUE) };
+    // Клетки, где мелководье находится справа и слева, отрисовываются по-разному
+    private static final Paint shallowWaterLeftPaint = new LinearGradient(0, 0.5, 1, 0.5, true, CycleMethod.NO_CYCLE, leftStops);
+    private static final Paint shallowWaterRightPaint = new LinearGradient(0, 0.5, 1, 0.5, true, CycleMethod.NO_CYCLE, rightStops);
 
     private static final Font figureTextFont = new Font(24);
 
@@ -118,15 +121,36 @@ public class ChessController implements Initializable {
         fixNewGameControls();
 
         currentGame = gameManager.newGame(p1Name, p1Color, p2Name, p2Color);
-        currentGame.addStartGameEventListener(this::draw);
+//        currentGame.addStartGameEventListener(this::draw);
         currentGame.startGame();
+        nextTurn();
+    }
+
+    private void nextTurn() {
+        updateTurnUI(currentGame.nextTurn());
+        draw();
+    }
+
+    private Font toBoldFont(Font font) {
+        return Font.font(font.getName(), FontWeight.BOLD, font.getSize());
+    }
+
+    private void updateTurnUI(TurnData turnData) {
+        textFlow.getChildren().clear();
+        Text t1 = new Text("Ход " + turnData.getTurnNumber() + ". ");
+        Text t2 = new Text(turnData.getPlayer().getName());
+//        t2.setFill(turnData.getPlayer().getColor());
+        t2.setFont(toBoldFont(t2.getFont()));
+
+        textFlow.getChildren().add(t1);
+        textFlow.getChildren().add(t2);
     }
 
     private void setDisableNewGameControls(boolean value) {
-        player1Color.setDisable(true);
-        player2Color.setDisable(true);
-        player1Name.setDisable(true);
-        player2Name.setDisable(true);
+        player1Color.setDisable(value);
+        player2Color.setDisable(value);
+        player1Name.setDisable(value);
+        player2Name.setDisable(value);
     }
 
     /** Фиксирует элементы управления новой игрой со введенными данными, соответствующими текущей партии **/
@@ -179,16 +203,24 @@ public class ChessController implements Initializable {
         double xPx = initialXPx;
         double yPx = initialYPx;
 
-        // В начале отрисовывается вода, а только после -- линии и фигуры
-        ctx.setFill(waterPaint);
-        // Покраска клетки
-        // Todo: покраска поля на основе field model
-
         for (int x = 0; x < fieldCellsX + 1; x++, xPx += cellSize) {
             for (int y = 0; y < fieldCellsY + 1; y++, yPx += cellSize) {
                 // test
-                if (FieldData.getCellType(x, y) == FieldCellType.Water)
-                    ctx.fillRect(xPx, yPx, cellSize, cellSize);
+                switch (FieldData.getCellType(x, y)) {
+                    case Water:
+                        ctx.setFill(waterPaint);
+                        break;
+                    case ShallowWaterLeft:
+                        ctx.setFill(shallowWaterLeftPaint);
+                        break;
+                    case ShallowWaterRight:
+                        ctx.setFill(shallowWaterRightPaint);
+                        break;
+                    default:
+                        // Отрисовка иных типов ячеек игнорируется
+                        continue;
+                }
+                ctx.fillRect(xPx, yPx, cellSize, cellSize);
             }
             yPx = initialYPx;
         }

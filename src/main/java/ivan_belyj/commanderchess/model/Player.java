@@ -19,7 +19,7 @@ public class Player {
         return _id;
     }
 
-    public String get_name() {
+    public String getName() {
         return _name;
     }
 

@@ -15,7 +15,7 @@
 <HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="770.0" prefWidth="968.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ivan_belyj.commanderchess.ChessController">
    <children>
       <Canvas fx:id="canvas" height="800.0" width="700.0" />
-      <VBox alignment="TOP_CENTER" prefHeight="800.0" prefWidth="176.0" style="-fx-background-color: #aaa;" HBox.hgrow="ALWAYS">
+      <VBox alignment="TOP_CENTER" prefHeight="800.0" prefWidth="176.0" HBox.hgrow="ALWAYS">
          <HBox.margin>
             <Insets />
          </HBox.margin>
