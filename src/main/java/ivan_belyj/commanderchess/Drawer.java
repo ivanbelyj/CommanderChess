@@ -12,18 +12,12 @@ import javafx.scene.text.TextAlignment;
 
 /** Класс отрисовки UI игры на Canvas **/
 public class Drawer {
+    private UIDrawingData uiDrawing;
+    private FieldDrawingData fieldDrawing;
+
     private PartyGame currentGame;
 
     private final Canvas canvas;
-
-    // Поле можно разделять на клетки (10 x 11) или узлы (11 x 12))
-    private static final int fieldCellsX = FieldData.FIELD_NODES_X - 1;
-    private static final int fieldCellsY = FieldData.FIELD_NODES_Y - 1;
-
-    private static final double padding = 30;  // Поле отображается с отступом от краев окна
-
-    /** Размер клетки, включая толщину линии / линий **/
-    private double cellSize;
 
     /** Размер фигуры **/
     private final double figureSize;
@@ -31,6 +25,8 @@ public class Drawer {
     private static final Paint linePaint = Color.DARKGRAY;
     private static final Paint waterPaint = Color.SKYBLUE;
     private static final Paint backgroundPaint = Color.WHITE;
+
+    private static final Paint selectionPaint = Color.rgb(0, 0, 0, 0.2);
 
     // Используется для градиента далее
     private static final Stop[] leftStops = new Stop[] { new Stop(0, Color.SKYBLUE), new Stop(0.8, Color.WHITE) };
@@ -44,19 +40,15 @@ public class Drawer {
     // Следующие поля используются / устанавливаются во время отрисовки
     private GraphicsContext ctx;
 
-    // Рисование линий начинается с учетом отступа
-    private final double initialYPx = padding;
-    private final double initialXPx = padding;
-
     // Координаты последнего узла сетки
     private double lastNodeX;
     private double lastNodeY;
 
-    public Drawer(Canvas canvas) {
+    public Drawer(FieldDrawingData fieldDrawing, Canvas canvas) {
+        this.fieldDrawing = fieldDrawing;
         this.canvas = canvas;
 
-        defineCellSize();
-        figureSize = cellSize * 0.85;
+        figureSize = fieldDrawing.getCellSize() * 0.8;
     }
 
     public void setCurrentGame(PartyGame currentGame) {
@@ -66,47 +58,57 @@ public class Drawer {
         return currentGame;
     }
 
-    private void defineCellSize() {
-        // Размер клетки определяется таким образом, чтобы клетки уместились в окно
-        // (а значит, в минимальную из сторон окна)
-        double minCanvasSize;
-        double minSideCells;
-
-        if (canvas.getWidth() < canvas.getHeight()) {
-            minCanvasSize = canvas.getWidth();
-            minSideCells = fieldCellsX;
-        } else {
-            minCanvasSize = canvas.getHeight();
-            minSideCells = fieldCellsY;
-        }
-        cellSize = (minCanvasSize - padding * 2) / minSideCells;
+    public void draw(UIDrawingData drawingData) {
+        this.uiDrawing = drawingData;
+        draw();
     }
 
     public void draw() {
         this.ctx = canvas.getGraphicsContext2D();
-        this.lastNodeX = (cellSize) * fieldCellsX + padding;
-        this.lastNodeY = (cellSize) * fieldCellsY + padding;
+        this.lastNodeX = (fieldDrawing.getCellSize()) * FieldData.FIELD_CELLS_X + FieldDrawingData.PADDING_X;
+        this.lastNodeY = (fieldDrawing.getCellSize()) * FieldData.FIELD_CELLS_Y + FieldDrawingData.PADDING_Y;
 
-        fillBackground();
+        drawBackground();
+
         drawCells();
         drawLines();
         drawBorder();
+
+        if (uiDrawing != null)
+            drawUI();
 
         if (currentGame != null)
             drawFigures();
     }
 
-    private void fillBackground() {
+    private void drawBackground() {
         ctx.setFill(backgroundPaint);
         ctx.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
     }
 
-    private void drawCells() {
-        double xPx = initialXPx;
-        double yPx = initialYPx;
+    private void drawUI() {
+        // Таким образом в исходных данных было обозначено отсутствие выбранной клетки
+        if (uiDrawing.getSelectedPosX() < 0 || uiDrawing.getSelectedPosY() < 0
+                || uiDrawing.getSelectedPosX() >= FieldData.FIELD_NODES_X
+                || uiDrawing.getSelectedPosY() >= FieldData.FIELD_NODES_Y) {
+            return;
+        }
 
-        for (int x = 0; x < fieldCellsX + 1; x++, xPx += cellSize) {
-            for (int y = 0; y < fieldCellsY + 1; y++, yPx += cellSize) {
+        ctx.setFill(selectionPaint);
+        double x = getCoordInCanvasByPosInField(uiDrawing.getSelectedPosX(), false);
+        double y = getCoordInCanvasByPosInField(uiDrawing.getSelectedPosY(), true);
+        double size = figureSize * 1.5;
+        ctx.fillOval(x - size / 2, y - size / 2, size, size);
+    }
+
+    private void drawCells() {
+        double xPx = FieldDrawingData.PADDING_X;
+        double yPx = FieldDrawingData.PADDING_Y;
+
+        double cellSize = fieldDrawing.getCellSize();
+
+        for (int x = 0; x < FieldData.FIELD_CELLS_X + 1; x++, xPx += cellSize) {
+            for (int y = 0; y < FieldData.FIELD_CELLS_Y + 1; y++, yPx += cellSize) {
                 // test
                 switch (FieldData.getCellType(x, y)) {
                     case Water:
@@ -124,24 +126,24 @@ public class Drawer {
                 }
                 ctx.fillRect(xPx, yPx, cellSize, cellSize);
             }
-            yPx = initialYPx;
+            yPx = FieldDrawingData.PADDING_Y;
         }
     }
 
     private void drawLines() {
         // Отображение линий
-        double xPx = initialXPx;
-        double yPx = initialYPx;
+        double xPx = FieldDrawingData.PADDING_X;
+        double yPx = FieldDrawingData.PADDING_Y;
 
         ctx.setStroke(linePaint);
 
         // Для избежания дублирующейся рисовки вертикальных линий
         boolean drawVertLines = true;
-        for (int x = 0; x < fieldCellsX + 1; x++) {
+        for (int x = 0; x <  FieldData.FIELD_CELLS_X + 1; x++) {
             // Горизонтальная линия
             ctx.strokeLine(xPx, yPx, xPx, lastNodeY);
 
-            for (int y = 0; y < fieldCellsY + 1; y++) {
+            for (int y = 0; y <  FieldData.FIELD_CELLS_Y + 1; y++) {
                 // ctx.strokeOval(xPx, yPx, 10, 10);
 
                 if (drawVertLines) {
@@ -149,31 +151,39 @@ public class Drawer {
                     ctx.strokeLine(xPx, yPx, lastNodeX, yPx);
                 }
 
-                yPx += cellSize;
+                yPx += fieldDrawing.getCellSize();
             }
             if (drawVertLines)
                 drawVertLines = false;
 
-            xPx += cellSize;
-            yPx = initialYPx;
+            xPx += fieldDrawing.getCellSize();
+            yPx = FieldDrawingData.PADDING_Y;
         }
     }
 
     private void drawBorder() {
+        double paddingX = FieldDrawingData.PADDING_X;
+        double paddingY = FieldDrawingData.PADDING_Y;
         // Границы поля выделяются красным
         ctx.setStroke(Color.MEDIUMVIOLETRED);
-        ctx.strokeLine(initialXPx, initialYPx, initialXPx, lastNodeY);
-        ctx.strokeLine(initialXPx, initialYPx, lastNodeX, initialYPx);
-        ctx.strokeLine(lastNodeX, initialYPx, lastNodeX, lastNodeY);
-        ctx.strokeLine(initialXPx, lastNodeY, lastNodeX, lastNodeY);
+        ctx.strokeLine(paddingX, paddingY, paddingX, lastNodeY);
+        ctx.strokeLine(paddingX, paddingY, lastNodeX, paddingY);
+        ctx.strokeLine(lastNodeX, paddingY, lastNodeX, lastNodeY);
+        ctx.strokeLine(paddingX, lastNodeY, lastNodeX, lastNodeY);
     }
 
     private void drawFigures() {
         for (FieldFigure fig : currentGame.getFieldData().getFiguresData()) {
-            double x = initialXPx + cellSize * fig.getPosX();
-            double y = initialYPx + cellSize * fig.getPosY();
+//            double x = FieldDrawingData.PADDING_X + cellSize * fig.getPosX();
+//            double y = FieldDrawingData.PADDING_Y + cellSize * fig.getPosY();
+            double x = getCoordInCanvasByPosInField(fig.getPosX(), false);
+            double y = getCoordInCanvasByPosInField(fig.getPosY(), true);
             drawFigure(fig.getFigure(), x - figureSize / 2, y - figureSize / 2);
         }
+    }
+
+    private double getCoordInCanvasByPosInField(int pos, boolean isY) {
+        return (isY ? FieldDrawingData.PADDING_Y : FieldDrawingData.PADDING_X) + fieldDrawing.getCellSize() * pos;
     }
 
     private void drawFigure(Figure figure, double x, double y) {

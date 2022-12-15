@@ -7,6 +7,9 @@ public class FieldData {
     public static final int FIELD_NODES_X = 11;
     public static final int FIELD_NODES_Y = 12;
 
+    public static final int FIELD_CELLS_X = FIELD_NODES_X - 1;
+    public static final int FIELD_CELLS_Y = FIELD_NODES_Y - 1;
+
     private final List<FieldFigure> _figures;
 
     public FieldData(List<FieldFigure> figures) {

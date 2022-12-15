@@ -2,13 +2,16 @@ package ivan_belyj.commanderchess;
 
 import ivan_belyj.commanderchess.model.*;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.*;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
 
 import java.net.URL;
@@ -41,16 +44,26 @@ public class ChessController implements Initializable {
     private PartyGame currentGame;
 
     private Drawer drawer;
+    private MouseHandler mouseHandler;
+
+    private FieldDrawingData fieldDrawingData;
 
     @Override
     @FXML
     public void initialize(URL url, ResourceBundle resourceBundle) {
         gameManager = new GameManager();
 
-        newGameText = gameButton.getText();
+        fieldDrawingData = new FieldDrawingData(canvas);
 
-        drawer = new Drawer(canvas);
+        drawer = new Drawer(fieldDrawingData, canvas);
         drawer.draw();
+        mouseHandler = new MouseHandler(fieldDrawingData, canvas);
+        mouseHandler.addFieldNodeSelectedEventListener(args -> {
+            UIDrawingData drawingData = new UIDrawingData(args.getPosX(), args.getPosY());
+            drawer.draw(drawingData);
+        });
+
+        newGameText = gameButton.getText();
     }
 
     private void newGame() {
