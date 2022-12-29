@@ -1,5 +1,6 @@
 package ivan_belyj.commanderchess.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /** Данные о расстановке фигур на поле **/
@@ -51,5 +52,20 @@ public class FieldData {
             }
         }
         return true;
+    }
+
+    public Player playerAtPos(NodePos pos) {
+        ArrayList<FieldFigure> figs = figuresAtPos(pos);
+        return figs.size() == 0 ? null : figs.get(0).getFigure().getPlayer();
+    }
+
+    private ArrayList<FieldFigure> figuresAtPos(NodePos pos) {
+        ArrayList<FieldFigure> res = new ArrayList<>();
+        for (FieldFigure fig : _figures) {
+            if (fig.getPosX() == pos.getX() && fig.getPosY() == pos.getY()) {
+                res.add(fig);
+            }
+        }
+        return res;
     }
 }

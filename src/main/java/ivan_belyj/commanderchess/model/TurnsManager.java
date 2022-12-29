@@ -1,18 +1,18 @@
 package ivan_belyj.commanderchess.model;
 
 public class TurnsManager {
-    private Player _player1;
-    private Player _player2;
+    private Player player1;
+    private Player player2;
 //    private final ArrayList<Consumer<NewTurnEventArgs>> _newTurnEvent = new ArrayList<Consumer<NewTurnEventArgs>>();
 
     /** Ссылка на игрока, который совершает действия в данном ходе **/
-    private Player _currentTurnPlayer;
+    private Player currentTurnPlayer;
     /** Номер текущего хода **/
-    private int _turnNumber = 0;
+    private int turnNumber = 0;
 
     public TurnsManager(Player player1, Player player2) {
-        _player1 = player1;
-        _player2 = player2;
+        this.player1 = player1;
+        this.player2 = player2;
     }
 
 //    public void addNewTurnEventListener(Consumer<NewTurnEventArgs> event) {
@@ -23,12 +23,12 @@ public class TurnsManager {
 //            c.accept(new NewTurnEventArgs(_currentTurnPlayer, _turnNumber));
 
     public TurnData nextTurn() {
-        _turnNumber++;
-        if (_currentTurnPlayer != null && _currentTurnPlayer.getId() == _player1.getId()) {
-            _currentTurnPlayer = _player2;
+        turnNumber++;
+        if (currentTurnPlayer != null && currentTurnPlayer.getId() == player1.getId()) {
+            currentTurnPlayer = player2;
         } else {
-            _currentTurnPlayer = _player1;
+            currentTurnPlayer = player1;
         }
-        return new TurnData(_currentTurnPlayer, _turnNumber);
+        return new TurnData(currentTurnPlayer, turnNumber);
     }
 }

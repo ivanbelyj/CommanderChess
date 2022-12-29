@@ -48,6 +48,8 @@ public class ChessController implements Initializable {
 
     private UISelectionData selectionData = new UISelectionData();
 
+    private MovementInputHandler movementInputHandler;
+
     @Override
     @FXML
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -57,27 +59,41 @@ public class ChessController implements Initializable {
 
         drawer = new Drawer(fieldDrawingData, canvas.getGraphicsContext2D());
         drawer.draw();
+
+        // currentGame изменяется с каждой новой игрой, поэтому передается supplier
+        movementInputHandler = new MovementInputHandler(() -> this.currentGame);
         mouseHandler = new MouseHandler(fieldDrawingData, canvas);
         mouseHandler.addFieldNodeHoveredEventListener(args -> {
-            selectionEventHandler(args, this::hoverNode);
+            selectionEventHandler(args, this::hoverNode, false);
         });
         mouseHandler.addFieldNodeClickedEventListener(args -> {
-            selectionEventHandler(args, this::selectNode);
+            // movementInputHandler оборачивает обычное безусловное обновление UI
+            movementInputHandler.handleSelection(new NodePos(args.getPosX(), args.getPosY()),
+                    (canSelect) -> {
+                selectionEventHandler(args, this::selectNode, !canSelect);
+            });
         });
 
         newGameText = gameButton.getText();
     }
 
+    /* Обрабатывает обобщенную логику выделения элементов. Если canNotSelect == true,
+    * то элемент считается невозможным для выбора, но, тем не менее, такой выбор
+    * оказывает свой эффект и, например, сбрасывает предыдущее выделение.
+    * Значение false не оказывает никакого эффекта */
     private void selectionEventHandler(FieldNodeSelectedEventArgs args,
-                                       Consumer<NodePos> callback) {
+                                       Consumer<NodePos> callback, boolean canNotSelect) {
         if (currentGame == null)
             return;
 
         int x = args.getPosX();
         int y = args.getPosY();
-        // Если была выбрана точка за пределами сетки узлов
-        if (x < 0 || y < 0 || x >= FieldData.FIELD_NODES_X || y >= FieldData.FIELD_NODES_Y
-                || currentGame.getFieldData().isEmpty(x, y)) {
+
+        // Если была выбрана точка за пределами сетки узлов, либо выбор запрещен явно, и т.д.
+        if (canNotSelect || x < 0 || y < 0 ||
+                x >= FieldData.FIELD_NODES_X || y >= FieldData.FIELD_NODES_Y ||
+                currentGame.getFieldData().isEmpty(x, y)) {
+            // Такие недопустимые клетки снимают предыдущее выделение
             callback.accept(null);
         } else {
             callback.accept(new NodePos(args.getPosX(), args.getPosY()));
@@ -86,12 +102,10 @@ public class ChessController implements Initializable {
     }
 
     private void selectNode(NodePos nodePos) {
-        System.out.println("Select node");
         selectionData.setSelectedPos(nodePos);
     }
 
     private void hoverNode(NodePos nodePos) {
-        System.out.println("hover node");
         selectionData.setHoverPos(nodePos);
     }
 
@@ -123,6 +137,7 @@ public class ChessController implements Initializable {
         player1Name.setText(p1Name);
         player2Name.setText(p2Name);
 
+        // Эл-ты управления новой игрой становятся недоступны (сначала нужно завершить игру)
         fixNewGameControls();
 
         // Start game logic
@@ -136,14 +151,16 @@ public class ChessController implements Initializable {
         nextTurn();
     }
 
-    private void endGame(String endGameMessage) {
-        // Снятие выделения перед концом игры
+    private void resetSelectionsUI() {
+        // Снятие выделения
         this.selectionData = new UISelectionData();
         drawer.draw(this.selectionData);
+    }
 
-        drawer.setFiguresDataSupplier(() -> {
-            return null;
-        });
+    private void endGame(String endGameMessage) {
+        resetSelectionsUI();
+
+        drawer.setFiguresDataSupplier(() -> null);
 
         currentGame = null;
         // currentGame.endGame();

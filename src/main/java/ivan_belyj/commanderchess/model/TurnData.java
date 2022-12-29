@@ -16,4 +16,12 @@ public class TurnData {
     public int getTurnNumber() {
         return _turnNumber;
     }
+
+    @Override
+    public String toString() {
+        return "TurnData{" +
+                "_player=" + _player +
+                ", _turnNumber=" + _turnNumber +
+                '}';
+    }
 }

@@ -12,6 +12,7 @@ public class PartyGame {
 //    private final ArrayList<Runnable> _startGameEvent = new ArrayList<>();
 
     private TurnsManager _turnsManager;
+    private TurnData currentTurn;
 
     public PartyGame(Player p1, Player p2) {
         _player1 = p1;
@@ -38,6 +39,8 @@ public class PartyGame {
         return _fieldData;
     }
 
+    public TurnData getCurrentTurn() { return currentTurn; }
+
     public void startGame() {
         _fieldData = new InitialFieldBuilder().getInitialFieldData(_player1, _player2);
         _turnsManager = new TurnsManager(_player1, _player2);
@@ -45,6 +48,7 @@ public class PartyGame {
     }
 
     public TurnData nextTurn() {
-        return _turnsManager.nextTurn();
+        currentTurn = _turnsManager.nextTurn();
+        return currentTurn;
     }
 }
