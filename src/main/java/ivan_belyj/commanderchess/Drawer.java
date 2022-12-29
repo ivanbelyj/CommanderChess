@@ -1,10 +1,6 @@
 package ivan_belyj.commanderchess;
 
-import ivan_belyj.commanderchess.model.FieldData;
-import ivan_belyj.commanderchess.model.FieldFigure;
-import ivan_belyj.commanderchess.model.Figure;
-import ivan_belyj.commanderchess.model.PartyGame;
-import javafx.scene.canvas.Canvas;
+import ivan_belyj.commanderchess.model.*;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.*;
 import javafx.scene.text.Font;
@@ -12,7 +8,7 @@ import javafx.scene.text.TextAlignment;
 
 /** Класс отрисовки UI игры на Canvas **/
 public class Drawer {
-    private UIDrawingData uiDrawing;
+    private UISelectionData uiDrawing;
     private FieldDrawingData fieldDrawing;
 
     private PartyGame currentGame;
@@ -24,7 +20,10 @@ public class Drawer {
     private static final Paint waterPaint = Color.SKYBLUE;
     private static final Paint backgroundPaint = Color.WHITE;
 
-    private static final Paint selectionPaint = Color.rgb(0, 0, 0, 0.2);
+    private static final Paint hoverPaint = Color.rgb(0, 0, 0, 0.2);
+    private static final Paint selectionPaint = Color.rgb(80, 0, 255, 0.2);
+    private static final Paint availablePaint = Color.rgb(0, 255, 80, 0.2);
+    private static final Paint destroyAvailablePaint = Color.rgb(255, 0, 80, 0.2);
 
     // Используется для градиента далее
     private static final Stop[] leftStops = new Stop[] { new Stop(0, Color.SKYBLUE), new Stop(0.8, Color.WHITE) };
@@ -33,7 +32,7 @@ public class Drawer {
     private static final Paint shallowWaterLeftPaint = new LinearGradient(0, 0.5, 1, 0.5, true, CycleMethod.NO_CYCLE, leftStops);
     private static final Paint shallowWaterRightPaint = new LinearGradient(0, 0.5, 1, 0.5, true, CycleMethod.NO_CYCLE, rightStops);
 
-    private static final Font figureTextFont = new Font(24);
+    private static final Font figureTextFont = new Font(16);
 
     // Следующие поля используются / устанавливаются во время отрисовки
     private GraphicsContext ctx;
@@ -56,7 +55,7 @@ public class Drawer {
         return currentGame;
     }
 
-    public void draw(UIDrawingData drawingData) {
+    public void draw(UISelectionData drawingData) {
         this.uiDrawing = drawingData;
         draw();
     }
@@ -72,7 +71,7 @@ public class Drawer {
         drawBorder();
 
         if (uiDrawing != null)
-            drawUI();
+            drawSelections();
 
         if (currentGame != null)
             drawFigures();
@@ -83,19 +82,32 @@ public class Drawer {
         ctx.fillRect(0, 0, fieldDrawing.getCanvasWidth(), fieldDrawing.getCanvasHeight());
     }
 
-    private void drawUI() {
-        int x = uiDrawing.getSelectedPosX();
-        int y = uiDrawing.getSelectedPosY();
-        // Если была выбрана точка за пределами сетки узлов
-        if (x < 0 || y < 0 || x >= FieldData.FIELD_NODES_X || y >= FieldData.FIELD_NODES_Y
-                || currentGame == null || currentGame.getFieldData().isEmpty(x, y)) {
-            uiDrawing = null;
-            return;
+    private void drawSelections() {
+        if (uiDrawing.getHoverPos() != null) {
+            NodePos hover = uiDrawing.getHoverPos();
+            drawCircle(hover.getX(), hover.getY(), hoverPaint);
+        }
+        if (uiDrawing.getSelectedPos() != null) {
+            NodePos selected = uiDrawing.getSelectedPos();
+            drawCircle(selected.getX(), selected.getY(), selectionPaint);
+        }
+        if (uiDrawing.getAvailable() != null) {
+            System.out.println("draw available");
+            drawCircles(uiDrawing.getAvailable(), availablePaint);
         }
 
-        ctx.setFill(selectionPaint);
-        double xPx = getCoordInCanvasByPosInField(uiDrawing.getSelectedPosX(), false);
-        double yPx = getCoordInCanvasByPosInField(uiDrawing.getSelectedPosY(), true);
+    }
+
+    private void drawCircles(NodePos[] positions, Paint paint) {
+        for (NodePos nodePos : positions) {
+            drawCircle(nodePos.getX(), nodePos.getY(), paint);
+        }
+    }
+
+    private void drawCircle(int x, int y, Paint paint) {
+        ctx.setFill(paint);
+        double xPx = getCoordInCanvasByPosInField(x, false);
+        double yPx = getCoordInCanvasByPosInField(y, true);
         double size = figureSize * 1.5;
         ctx.fillOval(xPx - size / 2, yPx - size / 2, size, size);
     }

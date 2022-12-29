@@ -2,21 +2,19 @@ package ivan_belyj.commanderchess;
 
 import ivan_belyj.commanderchess.model.*;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.TextField;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.*;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.*;
 
 import java.net.URL;
 import java.util.Random;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 
 public class ChessController implements Initializable {
     @FXML
@@ -48,6 +46,8 @@ public class ChessController implements Initializable {
 
     private FieldDrawingData fieldDrawingData;
 
+    private UISelectionData selectionData = new UISelectionData();
+
     @Override
     @FXML
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -58,17 +58,43 @@ public class ChessController implements Initializable {
         drawer = new Drawer(fieldDrawingData, canvas.getGraphicsContext2D());
         drawer.draw();
         mouseHandler = new MouseHandler(fieldDrawingData, canvas);
-        mouseHandler.addFieldNodeSelectedEventListener(args -> {
-            // После того, как игра окончена, фигуры нельзя выделять мышью
-            if (currentGame == null)
-                return;
-            
-            UIDrawingData drawingData = new UIDrawingData(args.getPosX(), args.getPosY());
-            drawer.draw(drawingData);
+        mouseHandler.addFieldNodeHoveredEventListener(args -> {
+            selectionEventHandler(args, this::hoverNode);
+        });
+        mouseHandler.addFieldNodeClickedEventListener(args -> {
+            selectionEventHandler(args, this::selectNode);
         });
 
         newGameText = gameButton.getText();
     }
+
+    private void selectionEventHandler(FieldNodeSelectedEventArgs args,
+                                       Consumer<NodePos> callback) {
+        if (currentGame == null)
+            return;
+
+        int x = args.getPosX();
+        int y = args.getPosY();
+        // Если была выбрана точка за пределами сетки узлов
+        if (x < 0 || y < 0 || x >= FieldData.FIELD_NODES_X || y >= FieldData.FIELD_NODES_Y
+                || currentGame.getFieldData().isEmpty(x, y)) {
+            callback.accept(null);
+        } else {
+            callback.accept(new NodePos(args.getPosX(), args.getPosY()));
+        }
+        drawer.draw(this.selectionData);
+    }
+
+    private void selectNode(NodePos nodePos) {
+        System.out.println("Select node");
+        selectionData.setSelectedPos(nodePos);
+    }
+
+    private void hoverNode(NodePos nodePos) {
+        System.out.println("hover node");
+        selectionData.setHoverPos(nodePos);
+    }
+
 
     private void newGame() {
         Color p1Color = player1Color.getValue();
