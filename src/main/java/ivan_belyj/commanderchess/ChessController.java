@@ -127,14 +127,24 @@ public class ChessController implements Initializable {
 
         // Start game logic
         currentGame = gameManager.newGame(p1Name, p1Color, p2Name, p2Color);
-        drawer.setCurrentGame(currentGame);
+        // drawer.setCurrentGame(currentGame);
+        drawer.setFiguresDataSupplier(() -> {
+            return currentGame.getFieldData();
+        });
 //        currentGame.addStartGameEventListener(this::draw);
         currentGame.startGame();
         nextTurn();
     }
 
     private void endGame(String endGameMessage) {
-        drawer.setCurrentGame(null);
+        // Снятие выделения перед концом игры
+        this.selectionData = new UISelectionData();
+        drawer.draw(this.selectionData);
+
+        drawer.setFiguresDataSupplier(() -> {
+            return null;
+        });
+
         currentGame = null;
         // currentGame.endGame();
         setEndGameUI(endGameMessage);

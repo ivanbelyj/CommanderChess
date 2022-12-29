@@ -6,12 +6,12 @@ import javafx.scene.paint.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 
+import java.util.function.Supplier;
+
 /** Класс отрисовки UI игры на Canvas **/
 public class Drawer {
     private UISelectionData uiDrawing;
     private FieldDrawingData fieldDrawing;
-
-    private PartyGame currentGame;
 
     /** Размер фигуры **/
     private final double figureSize;
@@ -41,18 +41,16 @@ public class Drawer {
     private double lastNodeX;
     private double lastNodeY;
 
+    private Supplier<FieldData> supplyFiguresData;
+    public void setFiguresDataSupplier(Supplier<FieldData> supplyFiguresData) {
+        this.supplyFiguresData = supplyFiguresData;
+    }
+
     public Drawer(FieldDrawingData fieldDrawing, GraphicsContext ctx) {
         this.fieldDrawing = fieldDrawing;
         this.ctx = ctx;
 
         figureSize = fieldDrawing.getCellSize() * 0.8;
-    }
-
-    public void setCurrentGame(PartyGame currentGame) {
-        this.currentGame = currentGame;
-    }
-    public PartyGame getCurrentGame() {
-        return currentGame;
     }
 
     public void draw(UISelectionData drawingData) {
@@ -72,8 +70,7 @@ public class Drawer {
 
         if (uiDrawing != null)
             drawSelections();
-
-        if (currentGame != null)
+        if (supplyFiguresData != null && supplyFiguresData.get().getFiguresData() != null)
             drawFigures();
     }
 
@@ -184,7 +181,7 @@ public class Drawer {
     }
 
     private void drawFigures() {
-        for (FieldFigure fig : currentGame.getFieldData().getFiguresData()) {
+        for (FieldFigure fig : this.supplyFiguresData.get().getFiguresData()) {
 //            double x = FieldDrawingData.PADDING_X + cellSize * fig.getPosX();
 //            double y = FieldDrawingData.PADDING_Y + cellSize * fig.getPosY();
             double x = getCoordInCanvasByPosInField(fig.getPosX(), false);
@@ -226,5 +223,4 @@ public class Drawer {
         ctx.strokeText(str, x + textOffset, y + textOffset + fontOffset, figureSize);
         ctx.fillText(str, x + textOffset, y + textOffset + fontOffset, figureSize);
     }
-
 }
