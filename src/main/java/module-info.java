@@ -5,4 +5,6 @@ module ivan_belyj.commanderchess {
 
     opens ivan_belyj.commanderchess to javafx.fxml;
     exports ivan_belyj.commanderchess;
+    exports ivan_belyj.commanderchess.movement_input;
+    opens ivan_belyj.commanderchess.movement_input to javafx.fxml;
 }

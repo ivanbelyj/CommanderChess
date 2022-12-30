@@ -18,4 +18,6 @@ public class Figure {
     public FigureType getFigureType() {
         return _figureType;
     }
+
+
 }

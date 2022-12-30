@@ -1,6 +1,7 @@
 package ivan_belyj.commanderchess;
 
 import ivan_belyj.commanderchess.model.*;
+import ivan_belyj.commanderchess.movement_input.MovementInputHandler;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -58,10 +59,19 @@ public class ChessController implements Initializable {
         fieldDrawingData = new FieldDrawingData(canvas);
 
         drawer = new Drawer(fieldDrawingData, canvas.getGraphicsContext2D());
-        drawer.draw();
+        drawer.draw(null);
 
         // currentGame изменяется с каждой новой игрой, поэтому передается supplier
         movementInputHandler = new MovementInputHandler(() -> this.currentGame);
+        movementInputHandler.addFigureToMoveSelectedEventListener(args -> {
+            this.selectionData.setAvailable(args.getAvailableToMove());
+            drawer.draw(selectionData);
+        });
+        movementInputHandler.addSelectionResetEventEventListener(() -> {
+            this.selectionData.setAvailable(null);
+            drawer.draw(selectionData);
+        });
+
         mouseHandler = new MouseHandler(fieldDrawingData, canvas);
         mouseHandler.addFieldNodeHoveredEventListener(args -> {
             selectionEventHandler(args, this::hoverNode, false);
@@ -72,6 +82,7 @@ public class ChessController implements Initializable {
                     (canSelect) -> {
                 selectionEventHandler(args, this::selectNode, !canSelect);
             });
+
         });
 
         newGameText = gameButton.getText();
@@ -183,7 +194,7 @@ public class ChessController implements Initializable {
 
     private void nextTurn() {
         updateTurnUI(currentGame.nextTurn());
-        drawer.draw();
+        drawer.draw(selectionData);
     }
 
     private Font toBoldFont(Font font) {

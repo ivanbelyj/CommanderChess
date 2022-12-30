@@ -22,7 +22,7 @@ public class Drawer {
 
     private static final Paint hoverPaint = Color.rgb(0, 0, 0, 0.2);
     private static final Paint selectionPaint = Color.rgb(80, 0, 255, 0.2);
-    private static final Paint availablePaint = Color.rgb(0, 255, 80, 0.2);
+    private static final Paint availablePaint = Color.rgb(0, 255, 0, 0.4);
     private static final Paint destroyAvailablePaint = Color.rgb(255, 0, 80, 0.2);
 
     // Используется для градиента далее
@@ -58,7 +58,7 @@ public class Drawer {
         draw();
     }
 
-    public void draw() {
+    private void draw() {
         this.lastNodeX = (fieldDrawing.getCellSize()) * FieldData.FIELD_CELLS_X + FieldDrawingData.PADDING_X;
         this.lastNodeY = (fieldDrawing.getCellSize()) * FieldData.FIELD_CELLS_Y + FieldDrawingData.PADDING_Y;
 
@@ -70,7 +70,8 @@ public class Drawer {
 
         if (uiDrawing != null)
             drawSelections();
-        if (supplyFiguresData != null && supplyFiguresData.get().getFiguresData() != null)
+        if (supplyFiguresData != null && supplyFiguresData.get() != null &&
+                supplyFiguresData.get().getFiguresData() != null)
             drawFigures();
     }
 
@@ -89,25 +90,30 @@ public class Drawer {
             drawCircle(selected.getX(), selected.getY(), selectionPaint);
         }
         if (uiDrawing.getAvailable() != null) {
-            System.out.println("draw available");
-            drawCircles(uiDrawing.getAvailable(), availablePaint);
+            drawCircles(uiDrawing.getAvailable(), availablePaint, figureSize);
         }
 
     }
 
-    private void drawCircles(NodePos[] positions, Paint paint) {
+    private void drawCircles(NodePos[] positions, Paint paint, double size) {
         for (NodePos nodePos : positions) {
-            drawCircle(nodePos.getX(), nodePos.getY(), paint);
+            drawCircle(nodePos.getX(), nodePos.getY(), paint, size);
         }
     }
 
-    private void drawCircle(int x, int y, Paint paint) {
+    private void drawCircle(int x, int y, Paint paint, double size) {
         ctx.setFill(paint);
         double xPx = getCoordInCanvasByPosInField(x, false);
         double yPx = getCoordInCanvasByPosInField(y, true);
-        double size = figureSize * 1.5;
         ctx.fillOval(xPx - size / 2, yPx - size / 2, size, size);
     }
+
+    private void drawCircle(int x, int y, Paint paint) {
+        double size = figureSize * 1.5;
+        drawCircle(x, y, paint, size);
+    }
+
+
 
     private void drawCells() {
         double xPx = FieldDrawingData.PADDING_X;
